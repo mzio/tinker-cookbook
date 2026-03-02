@@ -254,7 +254,10 @@ async def save_checkpoint_async(
             name, ttl_seconds=ttl_seconds
         )
 
-    results = {k: await v.result_async() for k, v in futures.items()}
+    result_keys = list(futures.keys())
+    result_vals = await asyncio.gather(*(v.result_async() for v in futures.values()))
+    results = {result_keys[i]: result_vals[i] for i in range(len(result_keys))}
+    
     paths = {k + "_path": v.path for k, v in results.items()}
     update_scope_context(paths)
     logger.info(f"Saved checkpoints: {paths}")
